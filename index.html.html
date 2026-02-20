@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>แผนที่ท่องเที่ยวเชียงราย | 5 จุดเช็คอินห้ามพลาด</title>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        /* --- ตั้งค่าสีเริ่มต้น (Light Mode) และตัวแปรใหม่ --- */
+        :root {
+            --primary-color: #0a2463;
+            --accent-color: #f1c40f;
+            --danger-color: #e74c3c;
+            --text-light: #ffffff;
+            --bg-body: #f0f4f8;
+            --text-outline: 3px 3px 0px #000, -1px -1px 0px #000, 1px -1px 0px #000, -1px 1px 0px #000, 1px 1px 0px #000;
+            
+            /* เพิ่มตัวแปรสำหรับควบคุม Dark/Light Mode */
+            --bg-card: #ffffff;
+            --text-color: #333333;
+        }
+
+        /* --- โทนสีสำหรับ Dark Mode (Refined: ปรับให้อ่านง่ายขึ้น ไม่ดำมืดเกินไป) --- */
+        body.dark-mode {
+            --bg-body: #121212;
+            --bg-card: #1e1e1e;
+            --text-color: #e0e0e0; 
+            --primary-color: #4da8da; 
+        }
+
+        body { 
+            font-family: 'Prompt', sans-serif; 
+            margin: 0; 
+            padding: 0; 
+            background-color: var(--bg-body); 
+            color: var(--text-color); 
+            scroll-behavior: smooth; 
+            /* Smooth Transition เวลาเปลี่ยนโหมดสีจะไม่กระชาก */
+            transition: background-color 0.4s ease, color 0.4s ease; 
+        }
+        
+        /* --- CSS สำหรับปุ่ม โลโก้ และปุ่มธีมด้านบน --- */
+        .top-ui-container {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            z-index: 100;
+        }
+
+        .top-left-buttons {
+            display: flex;
+            gap: 15px; 
+            align-items: center; 
+        }
+
+        .theme-toggle-btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: 2px solid var(--accent-color);
+            border-radius: 50%;
+            /* ขยายขนาดปุ่มโหมดให้สมมาตรกับโลโก้ขวาบน */
+            width: 50px; 
+            height: 50px; 
+            cursor: pointer;
+            font-size: 1.5em; 
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), background-color 0.4s ease;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+        }
+
+        .theme-toggle-btn:hover {
+            transform: translateY(-3px) scale(1.05);
+            background-color: var(--accent-color);
+            color: var(--primary-color);
+            box-shadow: 0 12px 25px rgba(0,0,0,0.5);
+        }
+
+        .custom-btn {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 12px 28px; 
+            border-radius: 50px; 
+            text-decoration: none;
+            font-weight: 600;
+            border: 2px solid var(--accent-color);
+            transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), background-color 0.4s ease;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+            font-size: 0.95em;
+        }
+
+        .custom-btn:hover {
+            transform: translateY(-3px) scale(1.05); 
+            background-color: var(--accent-color);
+            color: var(--primary-color);
+            box-shadow: 0 12px 25px rgba(0,0,0,0.5);
+        }
+
+        .top-right-logos {
+            display: flex;
+            gap: 15px;
+        }
+
+        .logo-circle {
+            width: 70px; 
+            height: 70px; 
+            background-color: transparent; 
+            border-radius: 15px;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .logo-circle img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain; 
+            transition: transform 0.3s ease; 
+        }
+
+        .zoom-img {
+            transform: scale(1.5); 
+        }
+
+        /* --- Full Screen Video Header --- */
+        header { 
+            position: relative;
+            width: 100%;
+            height: 100vh; 
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: var(--text-light); 
+            text-align: center;
+            overflow: hidden;
+        }
+
+        .video-background {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            object-fit: cover;
+            z-index: -1;
+        }
+
+        .video-overlay {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.55); 
+            z-index: 0;
+        }
+
+        header .content-wrap { 
+            position: relative; 
+            z-index: 1; 
+            padding: 20px;
+            /* Modern Glassmorphism: เบลอพื้นหลังให้ตัวอักษรอ่านง่ายสุดๆ */
+            backdrop-filter: blur(8px); 
+            background: rgba(0,0,0,0.2);
+            border-radius: 30px;
+        }
+        
+        header h1 { 
+            font-size: clamp(2.5em, 8vw, 5.5em); 
+            font-weight: 800;
+            margin: 0 0 20px 0; 
+            color: var(--accent-color); 
+            text-shadow: var(--text-outline), 0px 0px 30px rgba(0,0,0,0.8); 
+            letter-spacing: 2px;
+            line-height: 1.1;
+        }
+
+        @keyframes bounceText {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
+        }
+
+        .instruction-text {
+            display: block;
+            font-size: clamp(1.2em, 4vw, 2em); 
+            font-weight: 600;
+            margin: 15px 0;
+            color: #ffffff;
+            text-shadow: var(--text-outline), 0px 5px 15px rgba(0,0,0,0.8);
+            animation: bounceText 2s infinite ease-in-out;
+        }
+
+        .sub-instruction {
+            display: block;
+            font-size: clamp(1em, 3.5vw, 1.8em); 
+            font-weight: 700;
+            color: #00ffcc; 
+            margin-top: 20px;
+            text-shadow: var(--text-outline), 0px 0px 20px rgba(0,255,204,0.5);
+            animation: bounceText 2.5s infinite ease-in-out;
+        }
+
+        .scroll-down {
+            position: absolute;
+            bottom: 40px;
+            font-size: 2.5em;
+            color: var(--text-light);
+            filter: drop-shadow(var(--text-outline));
+            animation: bounce 2s infinite;
+            text-decoration: none;
+            z-index: 2;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {transform: translateY(0);}
+            40% {transform: translateY(-20px);}
+            60% {transform: translateY(-10px);}
+        }
+
+        /* --- Container & Sections --- */
+        .container { max-width: 1200px; margin: 60px auto; padding: 0 20px; }
+        .section-title { 
+            text-align: center; 
+            margin-bottom: 40px; 
+            font-size: 2.2em; 
+            color: var(--primary-color); 
+            font-weight: 800; 
+            letter-spacing: 1px;
+            transition: color 0.4s ease;
+        }
+
+        .map-section { 
+            text-align: center; 
+            margin-bottom: 80px; 
+            background: var(--bg-card); 
+            padding: 30px; 
+            border-radius: 20px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1); 
+            transition: background-color 0.4s ease;
+        }
+        
+        .map-container { position: relative; display: inline-block; width: 100%; max-width: 1000px; }
+        .map-container > img { width: 100%; height: auto; border-radius: 15px; display: block; }
+        
+        /* --- Map Pins Animation & Tooltip --- */
+        @keyframes pulse-pin {
+            0% { transform: translate(-50%, -100%) rotate(-45deg) scale(1); }
+            50% { transform: translate(-50%, -100%) rotate(-45deg) scale(1.1); }
+            100% { transform: translate(-50%, -100%) rotate(-45deg) scale(1); }
+        }
+
+        .map-pin {
+            position: absolute;
+            width: 35px; height: 35px;
+            background-color: var(--danger-color);
+            border-radius: 50% 50% 50% 0;
+            transform: translate(-50%, -100%) rotate(-45deg); 
+            cursor: pointer;
+            box-shadow: -2px 2px 10px rgba(0,0,0,0.4);
+            border: 3px solid #fff;
+            /* UX Improvement: ปรับจังหวะการเด้งหมุดให้นุ่มและหนึบ */
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            z-index: 5;
+            animation: pulse-pin 2s infinite ease-in-out;
+        }
+
+        .map-pin::after {
+            content: attr(data-title);
+            position: absolute;
+            background: var(--primary-color);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 5px;
+            font-size: 14px;
+            white-space: nowrap;
+            top: -45px;
+            left: 50%;
+            transform: translateX(-50%) rotate(45deg);
+            opacity: 0;
+            visibility: hidden;
+            transition: 0.3s;
+            pointer-events: none;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            font-weight: 400;
+        }
+
+        .map-pin:hover::after {
+            opacity: 1;
+            visibility: visible;
+            top: -55px;
+        }
+
+        .map-pin::before {
+            content: '';
+            width: 14px; height: 14px;
+            margin: 10px 0 0 10px;
+            background: #fff;
+            position: absolute;
+            border-radius: 50%;
+        }
+
+        .map-pin:hover {
+            background-color: #c0392b;
+            transform: translate(-50%, -120%) rotate(-45deg) scale(1.3) !important;
+            z-index: 10;
+            animation: none;
+        }
+
+        /* --- ระบบ Filter ค้นหา --- */
+        .search-container {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .search-input {
+            padding: 15px 25px;
+            width: 80%;
+            max-width: 500px;
+            font-size: 1.1em;
+            font-family: 'Prompt', sans-serif;
+            border: 2px solid var(--primary-color);
+            border-radius: 30px;
+            outline: none;
+            background-color: var(--bg-card); 
+            color: var(--text-color); 
+            transition: all 0.4s ease;
+        }
+
+        .search-input:focus {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 15px rgba(10, 36, 99, 0.2);
+        }
+
+        .no-result-msg {
+            display: none;
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 40px;
+            font-size: 1.3em;
+            color: var(--danger-color);
+            background: var(--bg-card);
+            border-radius: 20px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+            font-weight: 600;
+            transition: background-color 0.4s ease;
+        }
+
+        /* --- Grid & Cards --- */
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 30px; }
+        
+        .card { 
+            background: var(--bg-card); 
+            border-radius: 20px; 
+            overflow: hidden; 
+            box-shadow: 0 10px 20px rgba(0,0,0,0.05); 
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), background-color 0.4s ease; 
+            text-decoration: none; 
+            display: flex; 
+            flex-direction: column; 
+            color: inherit; 
+            border: 2px solid transparent; 
+        }
+
+        .card:hover { 
+            transform: translateY(-20px) scale(1.03); 
+            box-shadow: 0 25px 50px rgba(10, 36, 99, 0.2); 
+            border-color: var(--accent-color);
+        }
+        
+        .card-image-wrapper { height: 240px; width: 100%; overflow: hidden; position: relative; }
+        .card-image-wrapper img { width: 100%; height: 100%; object-fit: cover; transition: all 0.5s ease; }
+        
+        .card:hover .card-image-wrapper img { 
+            transform: scale(1.15); 
+            filter: brightness(1.1);
+        }
+
+        .card-number { 
+            position: absolute; top: 15px; left: 15px; 
+            background: var(--primary-color); color: white; 
+            width: 40px; height: 40px; 
+            text-align: center; line-height: 40px; 
+            border-radius: 50%; font-weight: bold; z-index: 2; 
+            transition: all 0.5s ease, background-color 0.4s ease; 
+        }
+
+        .card:hover .card-number {
+            transform: rotate(360deg);
+            background: var(--danger-color);
+            box-shadow: 0 4px 10px rgba(231, 76, 60, 0.4);
+        }
+
+        .card-content { padding: 30px; flex-grow: 1; }
+        
+        /* Typography Update: ปรับระยะบรรทัดและความหนาของฟอนต์ให้อ่านสบายตา */
+        .card h3 { margin: 0 0 12px 0; color: var(--primary-color); font-size: 1.5em; font-weight: 600; transition: color 0.4s ease; }
+        .card p { font-size: 1em; opacity: 0.8; line-height: 1.8; margin-bottom: 25px; font-weight: 300; } 
+        
+        .btn-map { 
+            display: block; 
+            padding: 12px; 
+            background: rgba(10, 36, 99, 0.1); 
+            color: var(--primary-color); 
+            text-align: center; 
+            border-radius: 12px; 
+            font-weight: 600; 
+            transition: all 0.3s ease; 
+        }
+
+        body.dark-mode .btn-map { background: rgba(255, 255, 255, 0.1); }
+
+        .card:hover .btn-map { 
+            background: var(--primary-color); 
+            color: white; 
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(10, 36, 99, 0.3);
+        }
+
+        /* --- Popup (Modal) รวม --- */
+        .modal-overlay {
+            display: none; 
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.6); 
+            backdrop-filter: blur(5px); 
+            z-index: 1000; 
+            justify-content: center;
+            align-items: center;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal-content {
+            background: var(--bg-card); 
+            color: var(--text-color); 
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            position: relative;
+            max-width: 500px; 
+            width: 90%;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            animation: zoomIn 0.3s ease;
+            transition: background-color 0.4s ease, color 0.4s ease;
+        }
+
+        .close-modal-btn {
+            position: absolute;
+            top: 15px; right: 20px;
+            font-size: 28px; font-weight: bold;
+            color: #888; cursor: pointer; transition: 0.3s; line-height: 1;
+        }
+        .close-modal-btn:hover { color: var(--danger-color); transform: scale(1.2); }
+
+        /* --- CSS ส่วนผู้จัดทำ --- */
+        .creator-img {
+            width: 150px; height: 150px;
+            border-radius: 10px; 
+            object-fit: cover;
+            box-shadow: 0 8px 15px rgba(0,0,0,0.2);
+            margin-bottom: 20px;
+        }
+
+        /* --- CSS ส่วนปุ่มดาวน์โหลด --- */
+        .download-options {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .download-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            padding: 20px;
+            background: rgba(10, 36, 99, 0.05); 
+            border-radius: 15px;
+            flex: 1;
+            transition: background-color 0.3s ease;
+        }
+        
+        body.dark-mode .download-card {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .download-img {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 10px;
+            border: 2px solid var(--primary-color);
+            box-shadow: 0 5px 10px rgba(0,0,0,0.1);
+        }
+
+        .modal-content h2 { color: var(--primary-color); margin-top: 0; margin-bottom: 10px; font-size: 2em; transition: color 0.4s ease;}
+        .modal-content h3 { margin: 0 0 5px 0; color: inherit; font-size: 1.5em; font-weight: 600;}
+        .modal-content p { margin: 0; opacity: 0.8; font-size: 1.1em; font-weight: 300;}
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes zoomIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+        /* Media Queries สำหรับมือถือ */
+        @media (max-width: 768px) {
+            .top-ui-container { flex-direction: column; align-items: center; gap: 15px; }
+            .top-left-buttons { margin-bottom: 5px; } 
+            .logo-circle { width: 50px; height: 50px; }
+            .custom-btn { padding: 8px 15px; font-size: 0.8em; }
+            .theme-toggle-btn { width: 40px; height: 40px; font-size: 1.2em; } 
+            .container { margin: 30px auto; }
+            .section-title { font-size: 1.8em; }
+            .creator-img { width: 120px; height: 120px; }
+            
+            .download-options { flex-direction: column; }
+            
+            .map-pin { width: 25px; height: 25px; }
+            .map-pin::before { width: 10px; height: 10px; margin: 7px 0 0 7px; }
+            .map-pin::after { font-size: 12px; top: -35px; }
+            .map-pin:hover::after { top: -45px; }
+        }
+        
+        footer { 
+            background: var(--primary-color); 
+            color: white; 
+            text-align: center; 
+            padding: 40px 20px; 
+            margin-top: 100px; 
+            transition: background-color 0.4s ease;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="top-ui-container">
+            <div class="top-left-buttons">
+                <button class="theme-toggle-btn" onclick="toggleTheme()" id="themeBtn" title="สลับโหมดมืด/สว่าง">🌙</button>
+                <a href="#" class="custom-btn" onclick="openModal('creatorModal', event)">จัดทำโดย</a>
+                <a href="#" class="custom-btn" onclick="openModal('downloadModal', event)">ดาวน์โหลดแผนที่</a>
+            </div>
+            <div class="top-right-logos">
+                <div class="logo-circle"><img src="โลโก้-removebg-preview.png" alt="โลโก้ 1" class="zoom-img"></div>
+                <div class="logo-circle"><img src="โลโก้1-removebg-preview.png" alt="โลโก้ 2"></div>
+                <div class="logo-circle"><img src="Chiang_Rai_Flag-removebg-preview.png" alt="โลโก้ 3" class="zoom-img"></div>
+                <div class="logo-circle"><img src="spd_2014030811215_b-removebg-preview.png" alt="โลโก้ 4"></div>
+            </div>
+        </div>
+
+        <video autoplay muted loop playsinline class="video-background">
+            <source src="_vdo_timelapse_1080p_202602200506.mp4" type="video/mp4">
+            เบราว์เซอร์ของคุณไม่รองรับการเล่นวิดีโอ
+        </video>
+        <div class="video-overlay"></div>
+
+        <div class="content-wrap">
+            <h1>มหัศจรรย์เมืองเชียงราย</h1>
+            <span class="instruction-text">ชี้ที่หมุดบนแผนที่เพื่อดูหมุดกระโดด แล้วคลิกเพื่อดูพิกัด Google Maps</span>
+            <span class="sub-instruction">เลื่อนลงเพื่อสำรวจ 5 จุดเช็คอินยอดนิยม</span>
+        </div>
+
+        <a href="#content" class="scroll-down">🔽</a>
+    </header>
+
+    <div class="container" id="content">
+        <div class="map-section">
+            <h2 class="section-title">🗺️ สำรวจพิกัดผ่านแผนที่</h2>
+            <div class="map-container">
+                <img src="แผนที่.png" alt="แผนที่ท่องเที่ยวเชียงราย">
+                <a href="https://www.google.com/maps/search/?api=1&query=หอนาฬิกาเชียงราย" target="_blank" class="map-pin" style="top: 26%; left: 50.3%;" data-title="หอนาฬิกาเชียงราย"></a>
+                <a href="https://www.google.com/maps/search/?api=1&query=วัดร่องขุ่น" target="_blank" class="map-pin" style="top: 65%; left: 76.5%;" data-title="วัดร่องขุ่น"></a>
+                <a href="https://www.google.com/maps/search/?api=1&query=อนุสาวรีย์พ่อขุนเม็งรายมหาราช" target="_blank" class="map-pin" style="top: 8%; left: 77.8%;" data-title="อนุสาวรีย์พญามังราย"></a>
+                <a href="https://www.google.com/maps/search/?api=1&query=สิงห์ปาร์คเชียงราย" target="_blank" class="map-pin" style="top: 53%; left: 24%;" data-title="สิงห์ปาร์ค เชียงราย"></a>
+                <a href="https://www.google.com/maps/search/?api=1&query=วัดร่องเสือเต้น" target="_blank" class="map-pin" style="top: 14%; left: 36.4%;" data-title="วัดร่องเสือเต้น"></a>
+            </div>
+        </div>
+
+        <h2 class="section-title">✨ 5 จุดเช็คอินห้ามพลาด</h2>
+
+        <div class="search-container">
+            <input type="text" id="searchInput" class="search-input" placeholder="🔍 ค้นหาสถานที่..." onkeyup="filterCards()">
+        </div>
+        
+        <div class="grid" id="placesGrid">
+            <a href="https://www.google.com/maps/search/?api=1&query=หอนาฬิกาเชียงราย" target="_blank" class="card place-item">
+                <div class="card-image-wrapper">
+                    <div class="card-number">1</div>
+                    <img src="unnamed.jpg" alt="หอนาฬิกาเชียงราย" loading="lazy">
+                </div>
+                <div class="card-content">
+                    <h3 class="place-name">หอนาฬิกาเชียงราย</h3>
+                    <p>สถาปัตยกรรมสีทองอร่ามผลงานศิลปินระดับชาติ พร้อมการแสดงแสงสีเสียงที่สะกดสายตานักท่องเที่ยวทุกค่ำคืน</p>
+                    <div class="btn-map">📍 ดูพิกัด Google Maps</div>
+                </div>
+            </a>
+
+            <a href="https://www.google.com/maps/search/?api=1&query=วัดร่องขุ่น" target="_blank" class="card place-item">
+                <div class="card-image-wrapper">
+                    <div class="card-number">2</div>
+                    <img src="unnamed (1).jpg" alt="วัดร่องขุ่น" loading="lazy">
+                </div>
+                <div class="card-content">
+                    <h3 class="place-name">วัดร่องขุ่น</h3>
+                    <p>ศิลปะปูนปั้นสีขาวบริสุทธิ์ประดับกระจกแวววาว ราวกับสวรรค์บนดินที่ต้องมาเห็นด้วยตาตัวเองสักครั้ง</p>
+                    <div class="btn-map">📍 ดูพิกัด Google Maps</div>
+                </div>
+            </a>
+
+            <a href="https://www.google.com/maps/search/?api=1&query=อนุสาวรีย์พ่อขุนเม็งรายมหาราช" target="_blank" class="card place-item">
+                <div class="card-image-wrapper">
+                    <div class="card-number">3</div>
+                    <img src="unnamed (2).jpg" alt="อนุสาวรีย์" loading="lazy">
+                </div>
+                <div class="card-content">
+                    <h3 class="place-name">อนุสาวรีย์พญามังราย</h3>
+                    <p>ศูนย์รวมจิตใจและสถานที่ศักดิ์สิทธิ์ที่ประดิษฐานรูปหล่อปฐมกษัตริย์ผู้ทรงสร้างเมืองเชียงราย</p>
+                    <div class="btn-map">📍 ดูพิกัด Google Maps</div>
+                </div>
+            </a>
+
+            <a href="https://www.google.com/maps/search/?api=1&query=สิงห์ปาร์คเชียงราย" target="_blank" class="card place-item">
+                <div class="card-image-wrapper">
+                    <div class="card-number">4</div>
+                    <img src="unnamed (3).jpg" alt="สิงห์ปาร์ค" loading="lazy">
+                </div>
+                <div class="card-content">
+                    <h3 class="place-name">สิงห์ปาร์ค เชียงราย</h3>
+                    <p>ฟาร์มท่องเที่ยวเชิงเกษตรขนาดใหญ่ สัมผัสอากาศบริสุทธิ์ ไร่ชาเขียวขจี และกิจกรรมสนุกสนานมากมาย</p>
+                    <div class="btn-map">📍 ดูพิกัด Google Maps</div>
+                </div>
+            </a>
+
+            <a href="https://www.google.com/maps/search/?api=1&query=วัดร่องเสือเต้น" target="_blank" class="card place-item">
+                <div class="card-image-wrapper">
+                    <div class="card-number">5</div>
+                    <img src="unnamed (4).jpg" alt="วัดร่องเสือเต้น" loading="lazy">
+                </div>
+                <div class="card-content">
+                    <h3 class="place-name">วัดร่องเสือเต้น</h3>
+                    <p>วิหารสีน้ำเงินโดดเด่นสะดุดตา ผสมผสานศิลปะร่วมสมัยที่วิจิตรบรรจงในทุกรายละเอียด</p>
+                    <div class="btn-map">📍 ดูพิกัด Google Maps</div>
+                </div>
+            </a>
+            
+            <div id="noResult" class="no-result-msg">❌ ไม่พบสถานที่ที่คุณค้นหา กรุณาลองใหม่อีกครั้ง</div>
+        </div>
+    </div>
+
+    <footer>
+        <p>© 2026 คู่มือท่องเที่ยวเชียงราย | ความร่วมมือระหว่างเทศบาลนครเชียงราย และคณะเทคโนโลยีดิจิทัล มหาวิทยาลัยราชภัฏเชียงราย</p>
+    </footer>
+
+    <div id="creatorModal" class="modal-overlay">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <span class="close-modal-btn" onclick="closeAllModals()">×</span>
+            <h2>ผู้จัดทำ</h2>
+            <img src="รูปตัวเอง.jpg" alt="รูปผู้จัดทำ" class="creator-img">
+            <h3>นาย พิทยุตม์ บุตรดี</h3>
+            <p>รหัสนักศึกษา: 681760033</p>
+        </div>
+    </div>
+
+    <div id="downloadModal" class="modal-overlay">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <span class="close-modal-btn" onclick="closeAllModals()">×</span>
+            <h2>ดาวน์โหลดแผนที่</h2>
+            <p>เลือกรูปแบบไฟล์ที่คุณต้องการดาวน์โหลด</p>
+            
+            <div class="download-options">
+                <div class="download-card">
+                    <img src="Gemini_Generated_Image_axtuakaxtuakaxtu.png" alt="JPEG Preview" class="download-img">
+                    <a href="Gemini_Generated_Image_axtuakaxtuakaxtu.png" download="Map_ChiangRai.jpg" class="custom-btn">ดาวน์โหลด .JPEG</a>
+                </div>
+                
+                <div class="download-card">
+                    <img src="VDOจาร.gif" alt="GIF Preview" class="download-img">
+                    <a href="VDOจาร.gif" download="Map_ChiangRai.gif" class="custom-btn">ดาวน์โหลด .GIF</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 1. ฟังก์ชันจัดการ Modal 
+        function openModal(modalId, event) {
+            event.preventDefault(); 
+            document.getElementById(modalId).style.display = 'flex';
+        }
+
+        function closeAllModals() {
+            document.getElementById('creatorModal').style.display = 'none';
+            document.getElementById('downloadModal').style.display = 'none';
+        }
+
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal-overlay')) {
+                closeAllModals();
+            }
+        }
+
+        // Accessibility: กดปุ่ม ESC บนคีย์บอร์ดเพื่อปิด Popup
+        document.addEventListener('keydown', function(event) {
+            if (event.key === "Escape") {
+                closeAllModals();
+            }
+        });
+
+        // 2. ฟังก์ชัน Filter (Better Logic: ใช้ forEach และ .includes)
+        function filterCards() {
+            let input = document.getElementById('searchInput').value.toLowerCase();
+            let cards = document.querySelectorAll('.place-item');
+            let hasResult = false; 
+
+            cards.forEach(card => {
+                let title = card.querySelector('.place-name').innerText.toLowerCase();
+                
+                if (title.includes(input)) {
+                    card.style.display = "flex"; 
+                    hasResult = true; 
+                } else {
+                    card.style.display = "none"; 
+                }
+            });
+
+            document.getElementById('noResult').style.display = hasResult ? "none" : "block";
+        }
+
+        // 3. ฟังก์ชัน Dark/Light Mode
+        const themeBtn = document.getElementById('themeBtn');
+        const body = document.body;
+
+        if(localStorage.getItem('theme') === 'dark') {
+            body.classList.add('dark-mode');
+            themeBtn.innerText = '☀️';
+        }
+
+        function toggleTheme() {
+            body.classList.toggle('dark-mode');
+            
+            if(body.classList.contains('dark-mode')) {
+                themeBtn.innerText = '☀️';
+                localStorage.setItem('theme', 'dark'); 
+            } else {
+                themeBtn.innerText = '🌙';
+                localStorage.setItem('theme', 'light');
+            }
+        }
+    </script>
+</body>
+</html>
